@@ -1,0 +1,89 @@
+name: CI
+run-name: CI
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * 1'
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  SRC_DIR: /home/kxxt/Workspaces/chromium/src
+  RELEASE_OUT_DIR: /home/kxxt/Workspaces/chromium/src/out/Release-riscv64
+  DEBUG_OUT_DIR: /home/kxxt/Workspaces/chromium/src/out/Release-riscv64
+  CCACHE_CPP2: 'yes'
+  CCACHE_SLOPPINESS: time_macros
+
+jobs:
+  Sync:
+    runs-on: shinx
+    steps:
+      - name: Sync sources
+        run: |
+          set -ex
+          cd "$SRC_DIR"
+          git clean -fd
+          git reset --hard
+          git fetch --tags
+          git checkout main
+          git pull
+          gclient sync -D --force
+          git checkout --detach
+      - name: Patch
+        run: |
+          set -ex
+          cd "$SRC_DIR"
+          # Sandbox
+          git fetch https://chromium.googlesource.com/chromium/src refs/changes/20/4935120/11 && git cherry-pick FETCH_HEAD
+          # Swiftshader
+          git -C third_party/swiftshader fetch https://swiftshader.googlesource.com/SwiftShader refs/changes/29/75929/2 && git -C third_party/swiftshader cherry-pick FETCH_HEAD
+          # FFmpeg
+          git -C third_party/ffmpeg fetch https://chromium.googlesource.com/chromium/third_party/ffmpeg refs/changes/84/6860784/2 && git -C third_party/ffmpeg cherry-pick FETCH_HEAD
+  Release-Build:
+    needs: Sync
+    runs-on: shinx
+    timeout-minutes: 600
+    steps:
+      - name: Configure (Release)
+        run: |
+          set -ex
+          cd "$SRC_DIR"
+          export PATH="$PWD/buildtools/linux64:$PATH"
+          gn gen "$RELEASE_OUT_DIR"  --args='
+            is_official_build=true
+            is_debug=false
+            target_cpu="riscv64"
+            treat_warnings_as_errors=false
+            chrome_pgo_phase=0
+            use_debug_fission=false
+            symbol_level=1'
+      - name: Build (Release)
+        run: |
+          set -ex
+          cd "$SRC_DIR"
+          export PATH="$PWD/buildtools/linux64:$PATH"
+          autoninja -C "$RELEASE_OUT_DIR" chrome.stripped
+  Debug-Build:
+    needs: Sync
+    runs-on: shinx
+    timeout-minutes: 600
+    steps:
+      - name: Configure (Debug)
+        run: |
+          set -ex
+          cd "$SRC_DIR"
+          export PATH="$PWD/buildtools/linux64:$PATH"
+          gn gen "$DEBUG_OUT_DIR"  --args='
+            is_debug=true
+            target_cpu="riscv64"
+            treat_warnings_as_errors=false
+            chrome_pgo_phase=0
+            use_debug_fission=false
+            symbol_level=1'
+      - name: Build (Debug)
+        run: |
+          set -ex
+          cd "$SRC_DIR"
+          export PATH="$PWD/buildtools/linux64:$PATH"
+          autoninja -C "$DEBUG_OUT_DIR" chrome.stripped
