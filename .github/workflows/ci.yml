@@ -11,7 +11,7 @@ env:
   GH_TOKEN: ${{ github.token }}
   SRC_DIR: /home/kxxt/Workspaces/chromium/src
   RELEASE_OUT_DIR: /home/kxxt/Workspaces/chromium/src/out/Release-riscv64
-  DEBUG_OUT_DIR: /home/kxxt/Workspaces/chromium/src/out/Release-riscv64
+  DEBUG_OUT_DIR: /home/kxxt/Workspaces/chromium/src/out/Debug-riscv64
   CCACHE_CPP2: 'yes'
   CCACHE_SLOPPINESS: time_macros
 
@@ -86,4 +86,4 @@ jobs:
           set -ex
           cd "$SRC_DIR"
           export PATH="$PWD/buildtools/linux64:$PATH"
-          autoninja -C "$DEBUG_OUT_DIR" chrome.stripped
+          autoninja -C "$DEBUG_OUT_DIR" chrome
