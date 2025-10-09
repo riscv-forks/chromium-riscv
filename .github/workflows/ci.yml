@@ -80,7 +80,7 @@ jobs:
             treat_warnings_as_errors=false
             chrome_pgo_phase=0
             use_debug_fission=false
-            symbol_level=1'
+            symbol_level=2'
       - name: Build (Debug)
         run: |
           set -ex
