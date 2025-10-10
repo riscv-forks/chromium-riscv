@@ -1,0 +1,37 @@
+name: Base Unit Tests
+run-name: Base Unit Tests
+on:
+  workflow_call:
+    inputs:
+      build-mode:
+        required: true
+        type: string
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  SRC_DIR: /home/kxxt/chromium-ci/src
+  OUT_DIR: /home/kxxt/chromium-ci/src/out/${{ inputs.build-mode }}-riscv64
+
+jobs:
+  test:
+    runs-on: rvv-incapable
+    steps:
+      - name: test
+        run: |
+            set -ex
+            cd "$OUT_DIR"
+            ./base_unittests \
+                --test-launcher-jobs=48 \
+                --test-launcher-retry-limit=5 \
+                --test-launcher-timeout=60000 \
+                --gtest_filter=-"\
+                    `# Expected failure for now`\
+                    SysInfoTest.GetHardwareInfo:\
+                    `# TODO: the following failures look serious`\
+                    StackTraceTest.TraceStackFramePointers:\
+                    `# TODO: the following failures might worth investigation. Flaky`\
+                    All/SingleThreadTaskExecutorTypedTest.RecursivePostsDoNotFloodPipe/default_pump:\
+                    All/SingleThreadTaskExecutorTypedTest.RecursivePostsDoNotFloodPipe/UI_pump:\
+                    All/SingleThreadTaskExecutorTypedTest.RecursivePostsDoNotFloodPipe/default_pump:\
+                    All/SingleThreadTaskExecutorTypedTest.RecursivePostsDoNotFloodPipe/IO_pump
+                "

@@ -1,6 +1,7 @@
 name: CI
 run-name: CI
 on:
+  pull_request:
   push:
     branches:
       - main
@@ -40,6 +41,9 @@ jobs:
           git -C third_party/swiftshader fetch https://swiftshader.googlesource.com/SwiftShader refs/changes/29/75929/2 && git -C third_party/swiftshader cherry-pick FETCH_HEAD
           # FFmpeg
           git -C third_party/ffmpeg fetch https://chromium.googlesource.com/chromium/third_party/ffmpeg refs/changes/84/6860784/2 && git -C third_party/ffmpeg cherry-pick FETCH_HEAD
+          # Base
+          git fetch https://chromium.googlesource.com/chromium/src refs/changes/51/7026651/3 && git cherry-pick FETCH_HEAD
+          git fetch https://chromium.googlesource.com/chromium/src refs/changes/91/7025091/3 && git cherry-pick FETCH_HEAD
   Release-Build:
     needs: Sync
     runs-on: shinx
@@ -86,4 +90,9 @@ jobs:
           set -ex
           cd "$SRC_DIR"
           export PATH="$PWD/buildtools/linux64:$PATH"
-          autoninja -C "$DEBUG_OUT_DIR" chrome
+          autoninja -C "$DEBUG_OUT_DIR" chrome base_unittests
+  Debug-Test:
+    needs: Debug-Build
+    uses: ./.github/workflows/base_unittests.yml
+    with:
+      build-mode: Debug
