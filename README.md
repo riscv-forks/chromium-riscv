@@ -11,5 +11,5 @@ Currently it only tests whether Debug/Release build passes.
 
 ## Plans
 
-- Run tests
+- Run more tests
 - Release binaries for Chromium and ChromeDriver.
