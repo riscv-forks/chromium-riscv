@@ -55,6 +55,7 @@ jobs:
           cd "$SRC_DIR"
           export PATH="$PWD/buildtools/linux64:$PATH"
           gn gen "$RELEASE_OUT_DIR"  --args='
+            cc_wrapper="ccache"
             is_official_build=true
             is_debug=false
             target_cpu="riscv64"
@@ -79,6 +80,7 @@ jobs:
           cd "$SRC_DIR"
           export PATH="$PWD/buildtools/linux64:$PATH"
           gn gen "$DEBUG_OUT_DIR"  --args='
+            cc_wrapper="ccache"
             is_debug=true
             target_cpu="riscv64"
             treat_warnings_as_errors=false
