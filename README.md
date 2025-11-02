@@ -7,7 +7,8 @@ Instead, this CI runs periodically in order to save computation resource.
 The goal is to discover and fix RISC-V build errors before they gets into a Chromium release
 so that downstream Linux distributions won't need to apply extra patches.
 
-Currently it only tests whether Debug/Release build passes.
+Currently it mainly tests whether Debug/Release build passes
+and runs part of Chromium's unit tests.
 
 ## Plans
 
