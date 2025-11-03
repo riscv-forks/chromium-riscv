@@ -39,6 +39,7 @@ jobs:
           git fetch https://chromium.googlesource.com/chromium/src refs/changes/20/4935120/11 && git cherry-pick FETCH_HEAD
           # Swiftshader
           git -C third_party/swiftshader fetch https://swiftshader.googlesource.com/SwiftShader refs/changes/29/75929/2 && git -C third_party/swiftshader cherry-pick FETCH_HEAD
+          git -C third_party/swiftshader fetch https://swiftshader.googlesource.com/SwiftShader refs/changes/68/76668/1 && git -C third_party/swiftshader cherry-pick FETCH_HEAD
           # FFmpeg
           git -C third_party/ffmpeg fetch https://chromium.googlesource.com/chromium/third_party/ffmpeg refs/changes/84/6860784/2 && git -C third_party/ffmpeg cherry-pick FETCH_HEAD
           # Base
