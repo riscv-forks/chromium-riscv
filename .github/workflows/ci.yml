@@ -14,7 +14,7 @@ env:
   RELEASE_OUT_DIR: /home/kxxt/Workspaces/chromium/src/out/Release-riscv64
   DEBUG_OUT_DIR: /home/kxxt/Workspaces/chromium/src/out/Debug-riscv64
   CCACHE_CPP2: 'yes'
-  CCACHE_SLOPPINESS: time_macros
+  CCACHE_SLOPPINESS: time_macros,modules
 
 jobs:
   Sync:
