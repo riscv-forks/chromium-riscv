@@ -90,9 +90,14 @@ jobs:
           set -ex
           cd "$SRC_DIR"
           export PATH="$PWD/buildtools/linux64:$PATH"
-          autoninja -C "$DEBUG_OUT_DIR" chrome base_unittests
-  Debug-Test:
+          autoninja -C "$DEBUG_OUT_DIR" chrome base_unittests cc_unittests
+  base_unittests_debug:
     needs: Debug-Build
     uses: ./.github/workflows/base_unittests.yml
+    with:
+      build-mode: Debug
+  cc_unittests_debug:
+    needs: Debug-Build
+    uses: ./.github/workflows/cc_unittests.yml
     with:
       build-mode: Debug

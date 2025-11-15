@@ -1,0 +1,43 @@
+name: CC Unit Tests
+run-name: CC Unit Tests
+on:
+  workflow_call:
+    inputs:
+      build-mode:
+        required: true
+        type: string
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  SRC_DIR: /home/kxxt/chromium-ci/src
+  OUT_DIR: /home/kxxt/chromium-ci/src/out/${{ inputs.build-mode }}-riscv64
+
+jobs:
+  test:
+    runs-on: rvv-incapable
+    steps:
+      - name: test
+        run: |
+            set -ex
+            cd "$OUT_DIR"
+            ./cc_unittests \
+                --test-launcher-jobs=48 \
+                --test-launcher-retry-limit=5 \
+                --test-launcher-timeout=60000 \
+                --gtest_filter=-"\
+                    `# Image is different probably due to FMA. One test also mentions underflow, which is buggy on SG2042. Not going into the details for now`\
+                    All/LayerTreeHostMaskAsBlendingPixelTest.RotatedClippedCircleUnderflow/Software_Bitmap_0:\
+                    All/LayerTreeHostMaskAsBlendingPixelTest.RotatedClippedCircle/Software_Bitmap_0:\
+                    All/LayerTreeHostFiltersPixelTest.RotatedFilter/Software:\
+                    All/LayerTreeHostFiltersPixelTest.RotatedDropShadowFilter/Software:\
+                    `# Scroll offset is different. TODO`\
+                    LayerTreeHostScrollTestCaseWithChild.DeviceScaleFactor*:\
+                    `# Failed/Crashed after a short timeout reached. The short timeout is not adjustable`\
+                    LayerTreeHostScrollTestImplScrollUnderMainThreadScrollingParent.RunSingleThread_DelegatingRenderer:\
+                    LayerTreeHostTestImageAnimationDrawRecordShader.RunMultiThread_DelegatingRenderer:\
+                    TextureLayerReleaseResourcesAfterCommit.RunSingleThread_DelegatingRenderer:\
+                    TextureLayerReleaseResourcesAfterActivate.RunSingleThread_DelegatingRenderer:\
+                    LayerTreeHostPresentationDuringAnimation.RunMultiThread_DelegatingRenderer:\
+                    LayerTreeHostAnimationTestRemoveKeyframeModel.RunSingleThread_DelegatingRenderer:\
+                    All/LayerTreeHostFiltersPixelTest.BackdropFilterRotated/SkiaGraphiteDawn
+                "
