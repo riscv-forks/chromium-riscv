@@ -33,11 +33,6 @@ jobs:
                     `# Scroll offset is different. TODO`\
                     LayerTreeHostScrollTestCaseWithChild.DeviceScaleFactor*:\
                     `# Failed/Crashed after a short timeout reached. The short timeout is not adjustable`\
-                    LayerTreeHostScrollTestImplScrollUnderMainThreadScrollingParent.RunSingleThread_DelegatingRenderer:\
-                    LayerTreeHostTestImageAnimationDrawRecordShader.RunMultiThread_DelegatingRenderer:\
-                    TextureLayerReleaseResourcesAfterCommit.RunSingleThread_DelegatingRenderer:\
-                    TextureLayerReleaseResourcesAfterActivate.RunSingleThread_DelegatingRenderer:\
-                    LayerTreeHostPresentationDuringAnimation.RunMultiThread_DelegatingRenderer:\
-                    LayerTreeHostAnimationTestRemoveKeyframeModel.RunSingleThread_DelegatingRenderer:\
+                    *_DelegatingRenderer:\
                     All/LayerTreeHostFiltersPixelTest.BackdropFilterRotated/SkiaGraphiteDawn
                 "
