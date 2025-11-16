@@ -1,0 +1,37 @@
+name: net Unit Tests
+run-name: net Unit Tests
+on:
+  workflow_call:
+    inputs:
+      build-mode:
+        required: true
+        type: string
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  SRC_DIR: /home/kxxt/chromium-ci/src
+  OUT_DIR: /home/kxxt/chromium-ci/src/out/${{ inputs.build-mode }}-riscv64
+
+jobs:
+  test:
+    runs-on: rvv-incapable
+    steps:
+      - name: test
+        run: |
+            set -ex
+            cd "$OUT_DIR"
+            ./net_unittests \
+                --test-launcher-jobs=48 \
+                --test-launcher-retry-limit=5 \
+                --test-launcher-timeout=60000 \
+                --gtest_filter=-"\
+                    `# Expected failure as we mounted cross-compile artifacts via NFS, which doesn't ship vpython3 for riscv`\
+                    PythonUtils.Python3RunTime:\
+                    `# Also fails on Arch Linux x86_64 so not RISC-V related`\
+                    TrustStoreNSSTestAllowSpecifiedUserSlot.CertOnMultipleSlots:\
+                    TrustStoreNSSTestAllowSpecifiedUserSlot.SystemRootCertOnMultipleSlots:\
+                    TrustStoreNSSTestIgnoreSystemCerts.UserDbAnchorAndLeafTrustForSystemRootHonored:\
+                    TrustStoreNSSTestIgnoreSystemCerts.UserDbDistrustForSystemRootHonored:\
+                    TrustStoreNSSTestIgnoreSystemCerts.UserDbLeafTrustForSystemRootHonored:\
+                    TrustStoreNSSTestIgnoreSystemCerts.UserDbTrustForSystemRootHonored
+                "
