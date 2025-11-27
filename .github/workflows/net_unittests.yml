@@ -27,6 +27,8 @@ jobs:
                 --gtest_filter=-"\
                     `# Expected failure as we mounted cross-compile artifacts via NFS, which doesn't ship vpython3 for riscv`\
                     PythonUtils.Python3RunTime:\
+                    `# Flaky, RunLoop::Run() fixed timeout`\
+                    UDPSocketTest.SharedMulticastAddress:\
                     `# Also fails on Arch Linux x86_64 so not RISC-V related`\
                     TrustStoreNSSTestAllowSpecifiedUserSlot.CertOnMultipleSlots:\
                     TrustStoreNSSTestAllowSpecifiedUserSlot.SystemRootCertOnMultipleSlots:\
