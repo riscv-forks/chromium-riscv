@@ -41,7 +41,6 @@ jobs:
           # Swiftshader
           git -C third_party/swiftshader fetch https://swiftshader.googlesource.com/SwiftShader refs/changes/29/75929/2 && git -C third_party/swiftshader cherry-pick FETCH_HEAD
           # FFmpeg
-          git -C third_party/ffmpeg fetch https://chromium.googlesource.com/chromium/third_party/ffmpeg refs/changes/84/6860784/2 && git -C third_party/ffmpeg cherry-pick FETCH_HEAD
           # Base
   Release-Build:
     needs: Sync
