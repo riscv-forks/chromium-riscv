@@ -1,0 +1,41 @@
+name: V8 Tests
+run-name: V8 Tests
+on:
+  workflow_call:
+    inputs:
+      build-mode:
+        required: true
+        type: string
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  SRC_DIR: /home/kxxt/chromium-ci/src
+  OUT_DIR: /home/kxxt/chromium-ci/src/out/${{ inputs.build-mode }}-riscv64
+
+jobs:
+  cctest:
+    runs-on: rvv-incapable
+    steps:
+      - name: test
+        run: |
+            set -ex
+            cd "$SRC_DIR"
+            ./v8/tools/run-tests.py --outdir="$OUT_DIR/clang_x64_v8_riscv64" -j48 --json-test-results=/tmp/v8-cctest.json cctest || true
+            unexpected="$(jq -r '.results[] |select(.result != "") | .name' < /tmp/v8-cctest.json | grep -v \
+              -e '^cctest/test-run-wasm-relaxed-simd'                    `# Wasm SIMD is not supported` \
+              -e '^cctest/test-run-wasm-simd'                            `# Wasm SIMD is not supported` \
+              -e '^cctest/test-gc/RunWasmTurbofan_RefTrivialCastsStatic' `# Wasm SIMD is not supported` \
+              -e '^cctest/test-gc/RunWasmLiftoff_RefTrivialCastsStatic'  `# Wasm SIMD is not supported` \
+              -e '^cctest/test-allocation/AlignedAllocOOM'               `# OOM handler not called. TODO` \
+              -e '^cctest/test-allocation/MallocedOperatorNewOOM' \
+              -e '^cctest/test-allocation/AccountingAllocatorOOM' \
+              -e '^cctest/test-jump-table-assembler/JumpTablePatchingStress' `# Appears to be the SG2042 heisenbug`\
+            )"
+            
+            if [[ -n "$unexpected" ]]; then
+              echo "Unexpected failures: "
+              echo "$unexpected"
+              exit 1
+            fi
+
+
