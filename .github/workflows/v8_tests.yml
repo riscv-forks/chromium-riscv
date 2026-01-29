@@ -29,7 +29,8 @@ jobs:
               -e '^cctest/test-allocation/AlignedAllocOOM'               `# OOM handler not called. TODO` \
               -e '^cctest/test-allocation/MallocedOperatorNewOOM' \
               -e '^cctest/test-allocation/AccountingAllocatorOOM' \
-              -e '^cctest/test-jump-table-assembler/JumpTablePatchingStress' `# Appears to be the SG2042 heisenbug`\
+              -e '^cctest/test-jump-table-assembler/JumpTablePatchingStress' `# Appears to be the SG2042 heisenbug` \
+              || true
             )"
             
             if [[ -n "$unexpected" ]]; then
