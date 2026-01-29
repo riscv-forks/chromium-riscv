@@ -20,7 +20,9 @@ jobs:
         run: |
             set -ex
             cd "$SRC_DIR"
-            ./v8/tools/run-tests.py --outdir="$OUT_DIR/clang_x64_v8_riscv64" -j48 --json-test-results=/tmp/v8-cctest.json cctest || true
+            ./v8/tools/run-tests.py --outdir="$OUT_DIR/clang_x64_v8_riscv64" \
+              --exit-after-n-failures=0 `# Don't exit on too many failures. We need to run all tests` \
+              -j48 --json-test-results=/tmp/v8-cctest.json cctest || true
             unexpected="$(jq -r '.results[] |select(.result != "") | .name' < /tmp/v8-cctest.json | grep -v \
               -e '^cctest/test-run-wasm-relaxed-simd'                    `# Wasm SIMD is not supported` \
               -e '^cctest/test-run-wasm-simd'                            `# Wasm SIMD is not supported` \
