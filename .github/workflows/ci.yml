@@ -67,7 +67,11 @@ jobs:
           set -ex
           cd "$SRC_DIR"
           export PATH="$PWD/buildtools/linux64:$PATH"
-          autoninja -C "$RELEASE_OUT_DIR" chrome.stripped
+          autoninja -C "$RELEASE_OUT_DIR" chrome.stripped v8/test/cctest
+          # TODO: v8 cctest failed to build in debug mode
+          # Move v8 test binaries to clang_x64_v8_riscv64/
+          mv "$RELEASE_OUT_DIR"/cctest "$RELEASE_OUT_DIR"/clang_x64_v8_riscv64/
+  
   Debug-Build:
     needs: Sync
     runs-on: shinx
@@ -91,9 +95,8 @@ jobs:
           set -ex
           cd "$SRC_DIR"
           export PATH="$PWD/buildtools/linux64:$PATH"
-          autoninja -C "$DEBUG_OUT_DIR" chrome base_unittests cc_unittests net_unittests v8/test/cctest
-          # Move v8 test binaries to clang_x64_v8_riscv64/
-          mv "$DEBUG_OUT_DIR"/cctest "$DEBUG_OUT_DIR"/clang_x64_v8_riscv64/
+          autoninja -C "$DEBUG_OUT_DIR" chrome base_unittests cc_unittests net_unittests
+
   base_unittests_debug:
     needs: Debug-Build
     uses: ./.github/workflows/base_unittests.yml
@@ -109,8 +112,8 @@ jobs:
     uses: ./.github/workflows/net_unittests.yml
     with:
       build-mode: Debug
-  v8_tests_debug:
-    needs: Debug-Build
+  v8_tests_release:
+    needs: Release-Build
     uses: ./.github/workflows/v8_tests.yml
     with:
-      build-mode: Debug
+      build-mode: Release
