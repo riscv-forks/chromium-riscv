@@ -1,0 +1,190 @@
+name: CD
+run-name: CD
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/cd.yml'
+  schedule:
+    - cron: '0 0 * * 3'
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  SRC_DIR: /home/kxxt/Workspaces/chromium/src
+  RELEASE_OUT_DIR: /home/kxxt/Workspaces/chromium/src/out/Release-riscv64
+  DEBUG_OUT_DIR: /home/kxxt/Workspaces/chromium/src/out/Debug-riscv64
+  CCACHE_SLOPPINESS: time_macros,modules
+  CCACHE_DEPEND: true
+  CCACHE_DIRECT: true
+
+jobs:
+  Check-Latest:
+    runs-on: ubuntu-24.04
+    outputs:
+      should-continue: ${{ steps.check.outputs.should-continue }}
+      latest-stable: ${{ steps.check.outputs.latest-stable }}
+    steps:
+      - name: Check latest Stable
+        id: check
+        run: |
+          latest_stable="$(curl -s "https://chromiumdash.appspot.com/fetch_releases?channel=Stable&platform=Linux&num=1" | jq -r '.[0].version')"
+
+          echo "latest-stable=${latest_stable}" >> "$GITHUB_OUTPUT"
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "should-continue=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should-continue=true" >> "$GITHUB_OUTPUT"
+          fi
+  Sync:
+    runs-on: magmar
+    needs: Check-Latest
+    if: ${{ needs.Check-Latest.outputs.should-continue == 'true' }}
+    steps:
+      - name: Sync sources
+        run: |
+          set -ex
+          cd "$SRC_DIR"
+          git clean -fd
+          git reset --hard
+          git fetch --tags
+          git checkout '${{needs.Check-Latest.outputs.latest-stable}}'
+          gclient sync -D --force
+          git checkout --detach
+      - name: Patch
+        run: |
+          set -ex
+          cd "$SRC_DIR"
+          # Sandbox
+          git fetch https://chromium.googlesource.com/chromium/src refs/changes/20/4935120/11 && git cherry-pick FETCH_HEAD
+          # Swiftshader
+          git -C third_party/swiftshader fetch https://swiftshader.googlesource.com/SwiftShader refs/changes/29/75929/2 && git -C third_party/swiftshader cherry-pick FETCH_HEAD
+          # V8
+          # FFmpeg
+          # Installer
+          git fetch https://chromium.googlesource.com/chromium/src refs/changes/96/7509196/2 && git cherry-pick FETCH_HEAD
+  Release-Build:
+    needs: Sync
+    runs-on: magmar
+    timeout-minutes: 600
+    steps:
+      - name: Configure (Release)
+        run: |
+          set -ex
+          cd "$SRC_DIR"
+          export PATH="$PWD/buildtools/linux64:$PATH"
+          gn gen "$RELEASE_OUT_DIR"  --args='
+            cc_wrapper="ccache"
+            is_official_build=true
+            is_debug=false
+            target_cpu="riscv64"
+            treat_warnings_as_errors=false
+            chrome_pgo_phase=0
+            use_debug_fission=false
+            symbol_level=1'
+      - name: Build (Release)
+        run: |
+          set -ex
+          cd "$SRC_DIR"
+          export PATH="$PWD/buildtools/linux64:$PATH"
+          autoninja -C "$RELEASE_OUT_DIR" chrome.stripped chrome_sandbox.stripped chromedriver
+  Packaging:
+    needs: [Release-Build, Check-Latest]
+    runs-on: magmar
+    steps:
+      - name: Debug file Packaging
+        run: |
+          rm -rf -- "$RELEASE_OUT_DIR/debug_files" 
+          mkdir -p "$RELEASE_OUT_DIR/debug_files"
+        
+          # Add debug link for Chromium
+          objcopy --only-keep-debug "$RELEASE_OUT_DIR"/chrome "$RELEASE_OUT_DIR"/chromium.debug
+          objcopy --add-gnu-debuglink=chromium.debug "$RELEASE_OUT_DIR"/chrome.stripped
+          mv "$RELEASE_OUT_DIR"/chromium.debug "$RELEASE_OUT_DIR/debug_files/"
+          # For other ELFs
+          for elf in chrome_sandbox chrome_crashpad_handler libEGL.so libGLESv2.so libqt{5,6}_shim.so libvk_swiftshader.so libvulkan.so.1
+          do
+            objcopy --only-keep-debug "$RELEASE_OUT_DIR/$elf" "$RELEASE_OUT_DIR/elf.debug"
+            objcopy --add-gnu-debuglink="$elf.debug" "$RELEASE_OUT_DIR/$elf.stripped"
+            mv "$RELEASE_OUT_DIR/$elf.debug" "$RELEASE_OUT_DIR/debug_files/"
+          done
+
+          # Create archive for debug files
+          tar --zstd -cf "chromium-${{needs.Check-Latest.outputs.latest-stable}}-debug.tar.zst" -C "$RELEASE_OUT_DIR/debug_files" .
+
+
+      - name: DEB Packaging
+        run: |
+          set -ex
+          cd "$SRC_DIR"
+          export PATH="$PWD/buildtools/linux64:$PATH"
+          autoninja -C "$RELEASE_OUT_DIR" "chrome/installer/linux:stable_deb"
+      
+      - name: RPM Packaging
+        run: |
+          set -ex
+          cd "$SRC_DIR"
+          export PATH="$PWD/buildtools/linux64:$PATH"
+          autoninja -C "$RELEASE_OUT_DIR" "chrome/installer/linux:stable_rpm"
+      
+      - name: Archive Packaging
+        run: |
+          set -ex
+          cd "$SRC_DIR"
+
+          OUT=out/Release-riscv64
+
+          pkgdir=chromium-dist
+          rm -rf -- "$pkgdir"
+          mkdir -p "$pkgdir"
+
+          install -D "$OUT"/chrome.stripped "$pkgdir/chromium"
+
+          for elf in chrome_sandbox chrome_crashpad_handler libEGL.so libGLESv2.so libqt{5,6}_shim.so libvk_swiftshader.so libvulkan.so.1
+          do
+            install -D "$OUT"/${elf}.stripped "$pkgdir/${elf}"
+          done
+
+          files=(
+              chrome_100_percent.pak
+              chrome_200_percent.pak
+              resources.pak
+              v8_context_snapshot.bin
+
+              # SwiftShader ICD
+              vk_swiftshader_icd.json
+
+              # ICU
+              icudtl.dat
+          )
+
+          cp "${files[@]/#/$OUT/}" "$pkgdir"
+
+          install -Dm644 -t "$pkgdir/locales" "$OUT"/locales/*.pak
+
+          tar --zstd -cf chromium-${{needs.Check-Latest.outputs.latest-stable}}.tar.zst --directory="$pkgdir" .
+
+  Upload:
+    needs: [Packaging, Check-Latest]
+    runs-on: magmar
+    steps:
+      - name: Upload binaries
+        run: |
+          chromium_version="${{needs.Check-Latest.outputs.latest-stable}}"
+          cd "$RELEASE_OUT_DIR"
+          rm -f -- SHASUMS256.txt
+          file_list=(
+            "chromium-${chromium_version}-debug.tar.zst"
+            "chromium-${chromium_version}.tar.zst"
+            "chromedriver"
+            "chromium-browser-stable-${chromium_version}-1.riscv64.rpm"
+            "chromium-browser-stable_${chromium_version}-1_riscv64.deb"
+          )
+          for filename in "${file_list[@]}";
+          do
+            checksum=$(sha256sum "$filename" | cut -d ' ' -f 1)
+            echo "$checksum *$filename" >> SHASUMS256.txt
+          done
+          gh -R riscv-forks/chromium-riscv release create "$chromium_version" \
+              -t "Chromium $chromium_version for riscv64"
+          gh -R riscv-forks/electron-riscv-releases release upload "$chromium_version" SHASUMS256.txt "${file_list[@]}"
