@@ -189,5 +189,5 @@ jobs:
             echo "$checksum *$filename" >> SHASUMS256.txt
           done
           gh -R riscv-forks/chromium-riscv release create "$chromium_version" \
-              -t "Chromium $chromium_version for riscv64"
-          gh -R riscv-forks/electron-riscv-releases release upload "$chromium_version" SHASUMS256.txt "${file_list[@]}"
+             -t "Chromium $chromium_version for riscv64" \
+             SHASUMS256.txt "${file_list[@]}"
