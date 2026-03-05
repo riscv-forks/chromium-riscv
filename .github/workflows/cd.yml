@@ -168,6 +168,8 @@ jobs:
   Upload:
     needs: [Packaging, Check-Latest]
     runs-on: magmar
+    permissions:
+      contents: write
     steps:
       - name: Upload binaries
         run: |
