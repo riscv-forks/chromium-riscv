@@ -94,18 +94,19 @@ jobs:
     steps:
       - name: Debug file Packaging
         run: |
-          rm -rf -- "$RELEASE_OUT_DIR/debug_files" 
-          mkdir -p "$RELEASE_OUT_DIR/debug_files"
+          cd "$RELEASE_OUT_DIR"
+          rm -rf -- "debug_files" 
+          mkdir -p "debug_files"
         
           # Add debug link for Chromium
-          objcopy --only-keep-debug "$RELEASE_OUT_DIR"/chrome "$RELEASE_OUT_DIR"/chromium.debug
-          objcopy --add-gnu-debuglink=chromium.debug "$RELEASE_OUT_DIR"/chrome.stripped
+          llvm-objcopy --only-keep-debug "$RELEASE_OUT_DIR"/chrome "$RELEASE_OUT_DIR"/chromium.debug
+          llvm-objcopy --add-gnu-debuglink=chromium.debug "$RELEASE_OUT_DIR"/chrome.stripped
           mv "$RELEASE_OUT_DIR"/chromium.debug "$RELEASE_OUT_DIR/debug_files/"
           # For other ELFs
           for elf in chrome_sandbox chrome_crashpad_handler libEGL.so libGLESv2.so libqt{5,6}_shim.so libvk_swiftshader.so libvulkan.so.1
           do
-            objcopy --only-keep-debug "$RELEASE_OUT_DIR/$elf" "$RELEASE_OUT_DIR/elf.debug"
-            objcopy --add-gnu-debuglink="$elf.debug" "$RELEASE_OUT_DIR/$elf.stripped"
+            llvm-objcopy --only-keep-debug "$RELEASE_OUT_DIR/$elf" "$RELEASE_OUT_DIR/elf.debug"
+            llvm-objcopy --add-gnu-debuglink="$elf.debug" "$RELEASE_OUT_DIR/$elf.stripped"
             mv "$RELEASE_OUT_DIR/$elf.debug" "$RELEASE_OUT_DIR/debug_files/"
           done
 
@@ -132,7 +133,7 @@ jobs:
           set -ex
           cd "$SRC_DIR"
 
-          OUT=out/Release-riscv64
+          OUT="$RELEASE_OUT_DIR"
 
           pkgdir=chromium-dist
           rm -rf -- "$pkgdir"
