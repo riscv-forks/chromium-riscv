@@ -89,7 +89,12 @@ jobs:
           set -ex
           cd "$SRC_DIR"
           export PATH="$PWD/buildtools/linux64:$PATH"
-          autoninja -C "$RELEASE_OUT_DIR" chrome.stripped chrome_sandbox.stripped chromedriver
+          autoninja -C "$RELEASE_OUT_DIR" \
+            chrome.stripped chrome_sandbox.stripped chrome_crashpad_handler.stripped \
+            libEGL.so.stripped libGLESv2.so.stripped \
+            libqt{5,6}_shim.so.stripped \
+            libvk_swiftshader.so.stripped libvulkan.so.1.stripped \
+            chromedriver
   Packaging:
     needs: [Release-Build, Check-Latest]
     runs-on: shinx
@@ -100,15 +105,8 @@ jobs:
           rm -rf -- "debug_files" 
           mkdir -p "debug_files"
         
-          # Add debug link for Chromium
-          llvm-objcopy --only-keep-debug "$RELEASE_OUT_DIR"/chrome "$RELEASE_OUT_DIR"/chromium.debug
-          llvm-objcopy --add-gnu-debuglink=chromium.debug "$RELEASE_OUT_DIR"/chrome.stripped
-          mv "$RELEASE_OUT_DIR"/chromium.debug "$RELEASE_OUT_DIR/debug_files/"
-          # For other ELFs
-          for elf in chrome_sandbox chrome_crashpad_handler libEGL.so libGLESv2.so libqt{5,6}_shim.so libvk_swiftshader.so libvulkan.so.1
+          for elf in chrome chrome_sandbox chrome_crashpad_handler libEGL.so libGLESv2.so libqt{5,6}_shim.so libvk_swiftshader.so libvulkan.so.1
           do
-            llvm-objcopy --only-keep-debug "$RELEASE_OUT_DIR/$elf" "$RELEASE_OUT_DIR/elf.debug"
-            llvm-objcopy --add-gnu-debuglink="$elf.debug" "$RELEASE_OUT_DIR/$elf.stripped"
             mv "$RELEASE_OUT_DIR/$elf.debug" "$RELEASE_OUT_DIR/debug_files/"
           done
 
