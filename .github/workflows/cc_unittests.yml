@@ -16,6 +16,9 @@ jobs:
   test:
     runs-on: rvv-incapable
     steps:
+      - uses: actions/checkout@v5
+      - name: setup
+        uses: ./.github/actions/riscv64_nfs_setup
       - name: test
         run: |
             set -ex

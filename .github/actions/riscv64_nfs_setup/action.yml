@@ -1,0 +1,9 @@
+name: Mount NFS on RISC-V Runners
+description: 'Mount NFS on RISC-V Runners'
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        mount | grep chromium-ci || sudo mount 172.24.12.4:/var/lib/machines/chromium-ci/home/kxxt/Workspaces/chromium chromium-ci/
