@@ -20,7 +20,7 @@ env:
 
 jobs:
   Sync:
-    runs-on: shinx
+    runs-on: magmar
     steps:
       - name: Sync sources
         run: |
@@ -46,7 +46,7 @@ jobs:
           # Base
   Release-Build:
     needs: Sync
-    runs-on: shinx
+    runs-on: magmar
     timeout-minutes: 600
     steps:
       - name: Configure (Release)
@@ -75,7 +75,7 @@ jobs:
   
   Debug-Build:
     needs: Sync
-    runs-on: shinx
+    runs-on: magmar
     timeout-minutes: 600
     steps:
       - name: Configure (Debug)
