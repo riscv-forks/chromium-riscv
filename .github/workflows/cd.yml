@@ -135,7 +135,7 @@ jobs:
 
           OUT="$RELEASE_OUT_DIR"
 
-          pkgdir=chromium-dist
+          pkgdir="$OUT/chromium-dist"
           rm -rf -- "$pkgdir"
           mkdir -p "$pkgdir"
 
@@ -163,7 +163,7 @@ jobs:
 
           install -Dm644 -t "$pkgdir/locales" "$OUT"/locales/*.pak
 
-          tar --zstd -cf chromium-${{needs.Check-Latest.outputs.latest-stable}}.tar.zst --directory="$pkgdir" .
+          tar --zstd -cf "$OUT/chromium-${{needs.Check-Latest.outputs.latest-stable}}.tar.zst" --directory="$pkgdir" .
 
   Upload:
     needs: [Packaging, Check-Latest]
