@@ -37,7 +37,7 @@ jobs:
             echo "should-continue=true" >> "$GITHUB_OUTPUT"
           fi
   Sync:
-    runs-on: magmar
+    runs-on: shinx
     needs: Check-Latest
     if: ${{ needs.Check-Latest.outputs.should-continue == 'true' }}
     steps:
@@ -67,7 +67,7 @@ jobs:
           git fetch https://chromium.googlesource.com/chromium/src refs/changes/96/7509196/2 && git cherry-pick FETCH_HEAD
   Release-Build:
     needs: Sync
-    runs-on: magmar
+    runs-on: shinx
     timeout-minutes: 600
     steps:
       - name: Configure (Release)
@@ -92,7 +92,7 @@ jobs:
           autoninja -C "$RELEASE_OUT_DIR" chrome.stripped chrome_sandbox.stripped chromedriver
   Packaging:
     needs: [Release-Build, Check-Latest]
-    runs-on: magmar
+    runs-on: shinx
     steps:
       - name: Debug file Packaging
         run: |
@@ -169,7 +169,7 @@ jobs:
 
   Upload:
     needs: [Packaging, Check-Latest]
-    runs-on: magmar
+    runs-on: shinx
     permissions:
       contents: write
     steps:
