@@ -6,4 +6,4 @@ runs:
   steps:
     - shell: bash
       run: |
-        mount | grep chromium-ci || sudo mount 172.24.12.4:/var/lib/machines/chromium-ci/home/kxxt/Workspaces/chromium chromium-ci/
+        mount | grep chromium-ci || sudo mount 172.24.12.4:/var/lib/machines/chromium-ci/home/kxxt/Workspaces/chromium /home/kxxt/chromium-ci/
