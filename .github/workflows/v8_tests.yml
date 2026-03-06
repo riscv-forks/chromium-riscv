@@ -16,7 +16,7 @@ jobs:
   cctest:
     runs-on: rvv-incapable
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
       - name: setup
         uses: ./.github/actions/riscv64_nfs_setup
       - name: test
