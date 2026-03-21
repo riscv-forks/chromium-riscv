@@ -73,6 +73,7 @@ jobs:
           cd "$SRC_DIR"
           export PATH="$PWD/buildtools/linux64:$PATH"
           gn gen "$RELEASE_OUT_DIR"  --args='
+            google_api_key="${{ secrets.GOOGLE_API_KEY }}"
             cc_wrapper="ccache"
             is_official_build=true
             is_debug=false
