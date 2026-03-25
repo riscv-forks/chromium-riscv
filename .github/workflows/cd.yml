@@ -55,6 +55,7 @@ jobs:
         run: |
           set -ex
           cd "$SRC_DIR"
+          git fetch https://chromium.googlesource.com/chromium/src refs/changes/51/7699551/2 && git cherry-pick FETCH_HEAD
           # Sandbox
           git fetch https://chromium.googlesource.com/chromium/src refs/changes/20/4935120/11 && git cherry-pick FETCH_HEAD
           # Swiftshader
