@@ -40,5 +40,6 @@ jobs:
                     All/LayerTreeHostFiltersPixelTest.BackdropFilterRotated/SkiaGraphiteDawn:\
                     All/LayerTreeHostFiltersPixelTest.BackdropFilterBlurRounded/SkiaGraphiteDawn:\
                     B/LayerTreeHostBlendingPixelTest.BlendingWithRenderPassWithMaskColorMatrixAA/SkiaGraphiteDawn_GPU_Luminosity:\
-                    B/LayerTreeHostBlendingPixelTest.BlendingWithRenderPassWithMaskColorMatrix/SkiaGraphiteDawn_GPU_Color
+                    B/LayerTreeHostBlendingPixelTest.BlendingWithRenderPassWithMaskColorMatrix/SkiaGraphiteDawn_GPU_Color:\
+                    B/LayerTreeHostBlendingPixelTest.BlendingWithRenderPassWithMaskColorMatrix/SkiaGraphiteDawn_GPU_Saturation
                 "
