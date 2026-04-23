@@ -32,7 +32,7 @@ jobs:
           echo "latest-stable=${latest_stable}" >> "$GITHUB_OUTPUT"
           echo "The latest stable version is ${latest_stable}"
 
-          if gh release -R ${{ github.repository }} view "$RELEASE_TAG" >/dev/null 2>&1; then
+          if gh release -R ${{ github.repository }} view "${latest_stable}" >/dev/null 2>&1; then
             echo "should-continue=false" >> "$GITHUB_OUTPUT"
           else
             echo "should-continue=true" >> "$GITHUB_OUTPUT"
