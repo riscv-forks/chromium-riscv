@@ -34,6 +34,7 @@ jobs:
               -e '^cctest/test-allocation/AlignedAllocOOM'               `# OOM handler not called. TODO` \
               -e '^cctest/test-allocation/MallocedOperatorNewOOM' \
               -e '^cctest/test-allocation/AccountingAllocatorOOM' \
+              -e '^cctest/test-wasm-shared-engine/RunImportedWithDenormalsMismatchAndSourceUrl' `# expected failure https://chromium-review.googlesource.com/c/v8/v8/+/7796229` \
               -e '^cctest/test-jump-table-assembler/JumpTablePatchingStress' `# Appears to be the SG2042 heisenbug` \
               -e '^cctest/test-run-wasm/RunWasmLiftoff_Select_s128_parameters' `# TODO: investigate the following` \
               -e '^cctest/test-run-wasm/RunWasmTurbofan_Select_s128_parameters' \
