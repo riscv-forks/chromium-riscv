@@ -44,6 +44,7 @@ jobs:
           # V8
           # FFmpeg
           # Base
+          git fetch https://chromium.googlesource.com/chromium/src refs/changes/59/7807959/2 && git cherry-pick FETCH_HEAD
   Release-Build:
     needs: Sync
     runs-on: magmar
