@@ -35,6 +35,8 @@ jobs:
                     SysStrings.SysNativeMBAndWide:SysStrings.SysNativeMBToWide:SysStrings.SysWideToNativeMB:\
                     `# Flaky. Succeeds when only run this single test`
                     CancelableEventTest.BothCancelFailureAndSucceedOccurUnderContention:\
+                    `# Regression: https://github.com/riscv-forks/chromium-riscv/issues/31`
+                    LapTimer.ThreadTicksUsageExample:\
                     `# TODO: the following failures look serious`\
                     StackTraceTest.TraceStackFramePointers:\
                     `# TODO: the following failures might worth investigation. Flaky`\
