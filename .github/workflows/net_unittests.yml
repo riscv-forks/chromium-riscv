@@ -32,6 +32,8 @@ jobs:
                     PythonUtils.Python3RunTime:\
                     `# Flaky, RunLoop::Run() fixed timeout`\
                     UDPSocketTest.SharedMulticastAddress:\
+                    `# timeout regression: https://github.com/riscv-forks/chromium-riscv/issues/31`\
+                    SocketPoolAdditionalCapacityTest.TestDefaultDistributionForFieldTrialConfig:\
                     `# Also fails on Arch Linux x86_64 so not RISC-V related`\
                     TrustStoreNSSTestAllowSpecifiedUserSlot.CertOnMultipleSlots:\
                     TrustStoreNSSTestAllowSpecifiedUserSlot.SystemRootCertOnMultipleSlots:\
