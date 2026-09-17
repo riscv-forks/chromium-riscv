@@ -1,0 +1,28 @@
+name: Chromium Browser Smoke Test
+run-name: Chromium Browser Smoke Test
+on:
+  workflow_call:
+    inputs:
+      build-mode:
+        required: true
+        type: string
+      executable:
+        required: true
+        type: string
+
+env:
+  SRC_DIR: /home/kxxt/chromium-ci/src
+  OUT_DIR: /home/kxxt/chromium-ci/src/out/${{ inputs.build-mode }}-riscv64
+
+jobs:
+  xvfb_smoke_test:
+    runs-on: rvv-incapable
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mount RISC-V build artifacts
+        uses: ./.github/actions/riscv64_nfs_setup
+      - name: Launch Chromium under Xvfb
+        run: |
+          tests/chromium_xvfb_smoke_test.sh \
+            "$OUT_DIR/${{ inputs.executable }}"
