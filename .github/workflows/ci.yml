@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/ci.yml'
       - '.github/workflows/*test*.yml'
+      - 'tests/**'
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * 1'
@@ -121,3 +122,9 @@ jobs:
     uses: ./.github/workflows/v8_tests.yml
     with:
       build-mode: Release
+  chromium_browser_smoke_test_release:
+    needs: Release-Build
+    uses: ./.github/workflows/browser_smoke_test.yml
+    with:
+      build-mode: Release
+      executable: chrome.stripped
