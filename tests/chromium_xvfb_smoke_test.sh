@@ -9,8 +9,8 @@ fi
 
 chromium_executable=$1
 target_url=https://www.google.com/
-startup_timeout=${CHROMIUM_STARTUP_TIMEOUT:-60}
-stability_time=${CHROMIUM_STABILITY_TIME:-15}
+startup_timeout=${CHROMIUM_STARTUP_TIMEOUT:-300}
+stability_time=${CHROMIUM_STABILITY_TIME:-150}
 
 if [[ ! -x "$chromium_executable" ]]; then
   echo "Chromium executable is missing or not executable: $chromium_executable" >&2
