@@ -46,6 +46,9 @@ jobs:
         run: |
           set -ex
           cd "$SRC_DIR"
+          # Not sure why, but sometimes there are stale locks
+          git_dir="$(git rev-parse --absolute-git-dir)"
+          find "$git_dir" -type f -name '*.lock' -print -delete
           git clean -fd
           git reset --hard
           git fetch --tags
