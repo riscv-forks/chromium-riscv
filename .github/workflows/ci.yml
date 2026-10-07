@@ -22,12 +22,22 @@ env:
 jobs:
   Sync:
     runs-on: magmar
+    env:
+      # Wait for Git maintenance before continuing or ending the job.
+      # Environment config also covers gclient's Git subprocesses and Patch.
+      GIT_CONFIG_COUNT: '2'
+      GIT_CONFIG_KEY_0: maintenance.autoDetach
+      GIT_CONFIG_VALUE_0: 'false'
+      GIT_CONFIG_KEY_1: gc.autoDetach
+      GIT_CONFIG_VALUE_1: 'false'
     steps:
       - name: Sync sources
         run: |
           set -ex
           cd "$SRC_DIR"
-          # Not sure why, but sometimes there are stale locks
+          git --version
+          # Recover locks left by interrupted Git/maintenance in earlier jobs.
+          # This dedicated checkout is used by only one runner.
           git_dir="$(git rev-parse --absolute-git-dir)"
           find "$git_dir" -type f -name '*.lock' -print -delete
           git clean -fd
