@@ -63,6 +63,8 @@ jobs:
           git -C net/third_party/quiche/src fetch https://quiche.googlesource.com/quiche refs/changes/60/11960/1 && git -C net/third_party/quiche/src cherry-pick FETCH_HEAD
           # Pdfium
           git -C third_party/pdfium fetch --no-filter --no-tags https://pdfium.googlesource.com/pdfium refs/changes/50/161950/1 && git -C third_party/pdfium cherry-pick FETCH_HEAD
+          # TFLite: https://github.com/tensorflow/tensorflow/pull/129519
+          git -C third_party/tflite/src fetch https://github.com/tensorflow/tensorflow.git cc7b11be2d8cadaecbc09b691b01ddab074f8d3d && git -C third_party/tflite/src cherry-pick FETCH_HEAD
           # Sysroot
           ln -sf libutil.so.1 build/linux/debian_trixie_riscv64-sysroot/usr/lib/riscv64-linux-gnu/libutil.so
   Release-Build:
