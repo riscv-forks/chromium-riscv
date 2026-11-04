@@ -76,6 +76,8 @@ jobs:
           # V8
           # FFmpeg
           # Installer
+          # TFLite: https://github.com/tensorflow/tensorflow/pull/129519
+          git -C third_party/tflite/src fetch https://github.com/tensorflow/tensorflow.git cc7b11be2d8cadaecbc09b691b01ddab074f8d3d && git -C third_party/tflite/src cherry-pick FETCH_HEAD
   Release-Build:
     needs: Sync
     runs-on: shinx
