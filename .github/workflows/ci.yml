@@ -61,7 +61,6 @@ jobs:
           git fetch https://chromium.googlesource.com/chromium/src refs/changes/37/8129837/1 && git cherry-pick FETCH_HEAD
           # QUICHE
           # Pdfium
-          git -C third_party/pdfium fetch --no-filter --no-tags https://pdfium.googlesource.com/pdfium refs/changes/50/161950/1 && git -C third_party/pdfium cherry-pick FETCH_HEAD
           # TFLite: https://github.com/tensorflow/tensorflow/pull/129519
           git -C third_party/tflite/src fetch https://github.com/tensorflow/tensorflow.git cc7b11be2d8cadaecbc09b691b01ddab074f8d3d && git -C third_party/tflite/src cherry-pick FETCH_HEAD
           # Sysroot
