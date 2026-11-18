@@ -43,7 +43,8 @@ jobs:
           git clean -fd
           git reset --hard
           git fetch --tags
-          git checkout main
+          # Replace leftover dependency files that the target revision now tracks.
+          git checkout --force main
           git pull
           gclient sync -D --force
           git checkout --detach
