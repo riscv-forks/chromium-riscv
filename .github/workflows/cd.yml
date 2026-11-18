@@ -62,7 +62,8 @@ jobs:
           git clean -fd
           git reset --hard
           git fetch --tags
-          git checkout '${{needs.Check-Latest.outputs.latest-stable}}'
+          # Replace leftover dependency files that the target revision now tracks.
+          git checkout --force '${{needs.Check-Latest.outputs.latest-stable}}'
           gclient sync -D --force
           git checkout --detach
       - name: Patch
