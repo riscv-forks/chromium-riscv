@@ -13,7 +13,7 @@ env:
   OUT_DIR: /home/kxxt/chromium-ci/src/out/${{ inputs.build-mode }}-riscv64
 
 jobs:
-  cctest:
+  unittests:
     runs-on: rvv-incapable
     steps:
       - uses: actions/checkout@v4
@@ -23,25 +23,25 @@ jobs:
         run: |
             set -ex
             cd "$SRC_DIR"
-            ./v8/tools/run-tests.py --outdir="$OUT_DIR/clang_x64_v8_riscv64" \
+            results="$(mktemp /tmp/v8-unittests.XXXXXX.json)"
+            trap 'rm -f "$results"' EXIT
+            # Use the native binary and matching v8_build_config.json in OUT_DIR.
+            # V8's status file handles the migrated snapshot expected failures.
+            ./v8/tools/run-tests.py --outdir="$OUT_DIR" \
               --exit-after-n-failures=0 `# Don't exit on too many failures. We need to run all tests` \
-              -j48 --json-test-results=/tmp/v8-cctest.json cctest || true
-            unexpected="$(jq -r '.results[] |select(.result != "") | .name' < /tmp/v8-cctest.json | grep -v \
-              -e '^cctest/test-run-wasm-relaxed-simd'                    `# Wasm SIMD is not supported` \
-              -e '^cctest/test-run-wasm-simd'                            `# Wasm SIMD is not supported` \
-              -e '^cctest/test-gc/RunWasmTurbofan_RefTrivialCastsStatic' `# Wasm SIMD is not supported` \
-              -e '^cctest/test-gc/RunWasmLiftoff_RefTrivialCastsStatic'  `# Wasm SIMD is not supported` \
-              -e '^cctest/test-allocation/AlignedAllocOOM'               `# OOM handler not called. TODO` \
-              -e '^cctest/test-allocation/MallocedOperatorNewOOM' \
-              -e '^cctest/test-allocation/AccountingAllocatorOOM' \
-              -e '^cctest/test-wasm-shared-engine/RunImportedWithDenormalsMismatchAndSourceUrl' `# expected failure https://chromium-review.googlesource.com/c/v8/v8/+/7796229` \
-              -e '^cctest/test-jump-table-assembler/JumpTablePatchingStress' `# Appears to be the SG2042 heisenbug` \
-              -e '^cctest/test-run-wasm/RunWasmLiftoff_Select_s128_parameters' `# TODO: investigate the following` \
-              -e '^cctest/test-run-wasm/RunWasmTurbofan_Select_s128_parameters' \
-              -e '^cctest/test-serialize/SnapshotCreatorNoExternalReferencesCustomFail1' \
-              -e '^cctest/test-serialize/SnapshotCreatorNoExternalReferencesCustomFail2' \
-              || true
-            )"
+              -j48 --json-test-results="$results" unittests || true
+            # Fail if the runner did not produce a valid results document.
+            jq -e '.results | type == "array"' "$results" > /dev/null
+            unexpected="$(jq -r '
+              .results[] | select(.result != "") |
+              # Wasm SIMD is not supported on this runner.
+              select(.name | test("^unittests/RunWasm(RelaxedSimd|Simd|SimdLiftoff)Test\\.") | not) |
+              select(.name | test("^unittests/WasmGCTest\\.RunWasm(Liftoff|Turbofan)_RefTrivialCastsStatic$") | not) |
+              select(.name | test("^unittests/RunWasmTest\\.RunWasm(Liftoff|Turbofan)_Select_s128_parameters$") | not) |
+              # Appears to be the SG2042 heisenbug.
+              select(.name != "unittests/JumpTableAssemblerTest.JumpTablePatchingStress") |
+              .name
+            ' "$results")"
             
             if [[ -n "$unexpected" ]]; then
               echo "Unexpected failures: "

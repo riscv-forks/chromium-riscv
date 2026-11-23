@@ -90,10 +90,8 @@ jobs:
           set -ex
           cd "$SRC_DIR"
           export PATH="$PWD/buildtools/linux64:$PATH"
-          autoninja -C "$RELEASE_OUT_DIR" chrome.stripped v8/test/cctest
-          # TODO: v8 cctest failed to build in debug mode
-          # Move v8 test binaries to clang_x64_v8_riscv64/
-          mv "$RELEASE_OUT_DIR"/cctest "$RELEASE_OUT_DIR"/clang_x64_v8_riscv64/
+          # V8 migrated cctest into the unittests suite.
+          autoninja -C "$RELEASE_OUT_DIR" chrome.stripped v8/test/unittests:v8_unittests
   
   Debug-Build:
     needs: Sync
