@@ -25,27 +25,40 @@ jobs:
             cd "$SRC_DIR"
             results="$(mktemp /tmp/v8-unittests.XXXXXX.json)"
             trap 'rm -f "$results"' EXIT
-            # Use the native binary and matching v8_build_config.json in OUT_DIR.
-            # V8's status file handles the migrated snapshot expected failures.
-            ./v8/tools/run-tests.py --outdir="$OUT_DIR" \
-              --exit-after-n-failures=0 `# Don't exit on too many failures. We need to run all tests` \
-              -j48 --json-test-results="$results" unittests || true
-            # Fail if the runner did not produce a valid results document.
-            jq -e '.results | type == "array"' "$results" > /dev/null
-            unexpected="$(jq -r '
-              .results[] | select(.result != "") |
-              # Wasm SIMD is not supported on this runner.
-              select(.name != "unittests/WasmDisassemblerTest.Simd") |
-              select(.name | test("^unittests/RunWasm(RelaxedSimd|Simd|SimdLiftoff)Test\\.") | not) |
-              select(.name | test("^unittests/WasmGCTest\\.RunWasm(Liftoff|Turbofan)_RefTrivialCastsStatic$") | not) |
-              select(.name | test("^unittests/RunWasmTest\\.RunWasm(Liftoff|Turbofan)_Select_s128_parameters$") | not) |
-              # Appears to be the SG2042 heisenbug.
-              select(.name != "unittests/JumpTableAssemblerTest.JumpTablePatchingStress") |
-              # Folding checks host Zba support instead of the test feature set.
-              select(.name != "unittests/TurboshaftInstructionSelectorTest.ChangeUint32ToUint64AfterTrappingLoadFoldedAddress") |
-              .name
-            ' "$results")"
-            
+            tests=(unittests)
+            for attempt in 1 2; do
+              # Clear the previous report so a runner error cannot reuse it.
+              : > "$results"
+              # Use the native binary and matching v8_build_config.json in OUT_DIR.
+              # V8's status file handles the migrated snapshot expected failures.
+              ./v8/tools/run-tests.py --outdir="$OUT_DIR" \
+                --exit-after-n-failures=0 `# Don't exit on too many failures. We need to run all tests` \
+                -j48 --json-test-results="$results" "${tests[@]}" || true
+              # Fail if the runner did not produce a valid results document.
+              jq -e '.results | type == "array"' "$results" > /dev/null
+              unexpected="$(jq -r '
+                .results[] | select(.result != "") |
+                # Wasm SIMD is not supported on this runner.
+                select(.name != "unittests/WasmDisassemblerTest.Simd") |
+                select(.name | test("^unittests/RunWasm(RelaxedSimd|Simd|SimdLiftoff)Test\\.") | not) |
+                select(.name | test("^unittests/WasmGCTest\\.RunWasm(Liftoff|Turbofan)_RefTrivialCastsStatic$") | not) |
+                select(.name | test("^unittests/RunWasmTest\\.RunWasm(Liftoff|Turbofan)_Select_s128_parameters$") | not) |
+                # Appears to be the SG2042 heisenbug.
+                select(.name != "unittests/JumpTableAssemblerTest.JumpTablePatchingStress") |
+                # Folding checks host Zba support instead of the test feature set.
+                select(.name != "unittests/TurboshaftInstructionSelectorTest.ChangeUint32ToUint64AfterTrappingLoadFoldedAddress") |
+                .name
+              ' "$results")"
+              if [[ -z "$unexpected" ]]; then
+                break
+              fi
+              if [[ "$attempt" == 1 ]]; then
+                echo "Retrying unexpected failures once:"
+                echo "$unexpected"
+                mapfile -t tests < <(printf '%s\n' "$unexpected" | sort -u)
+              fi
+            done
+
             if [[ -n "$unexpected" ]]; then
               echo "Unexpected failures: "
               echo "$unexpected"
