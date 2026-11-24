@@ -35,11 +35,14 @@ jobs:
             unexpected="$(jq -r '
               .results[] | select(.result != "") |
               # Wasm SIMD is not supported on this runner.
+              select(.name != "unittests/WasmDisassemblerTest.Simd") |
               select(.name | test("^unittests/RunWasm(RelaxedSimd|Simd|SimdLiftoff)Test\\.") | not) |
               select(.name | test("^unittests/WasmGCTest\\.RunWasm(Liftoff|Turbofan)_RefTrivialCastsStatic$") | not) |
               select(.name | test("^unittests/RunWasmTest\\.RunWasm(Liftoff|Turbofan)_Select_s128_parameters$") | not) |
               # Appears to be the SG2042 heisenbug.
               select(.name != "unittests/JumpTableAssemblerTest.JumpTablePatchingStress") |
+              # Folding checks host Zba support instead of the test feature set.
+              select(.name != "unittests/TurboshaftInstructionSelectorTest.ChangeUint32ToUint64AfterTrappingLoadFoldedAddress") |
               .name
             ' "$results")"
             
