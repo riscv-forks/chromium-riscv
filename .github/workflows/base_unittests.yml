@@ -37,6 +37,8 @@ jobs:
                     CancelableEventTest.BothCancelFailureAndSucceedOccurUnderContention:\
                     `# Regression: https://github.com/riscv-forks/chromium-riscv/issues/31`\
                     LapTimer.ThreadTicksUsageExample:\
+                    `# Too slow: passes in about 503 seconds on rvs in Debug mode`\
+                    HistogramThreadsafeTest.SnapshotDeltaThreadsafe:\
                     `# TODO: the following failures look serious`\
                     StackTraceTest.TraceStackFramePointers:\
                     `# TODO: the following failures might worth investigation. Flaky`\
