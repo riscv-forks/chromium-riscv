@@ -58,6 +58,8 @@ jobs:
           git -C third_party/swiftshader fetch https://swiftshader.googlesource.com/SwiftShader refs/changes/29/75929/2 && git -C third_party/swiftshader cherry-pick FETCH_HEAD
           # V8
           # FFmpeg
+          # dav1d: exclude cdef_common.S from standalone asm sources (https://crrev.com/c/8869270)
+          git fetch https://chromium.googlesource.com/chromium/src refs/changes/70/8869270/1 && git cherry-pick FETCH_HEAD
           # Base
           git fetch https://chromium.googlesource.com/chromium/src refs/changes/37/8129837/1 && git cherry-pick FETCH_HEAD
           # QUICHE
